@@ -4,7 +4,7 @@ from func_private import abort_all_positions
 from func_public import construct_market_prices
 from func_cointegration import store_cointegration_results
 from func_entry_pairs import open_positions
-from func_exit_pairs import manage_trade_exits
+from func_exit_pairs import manage_trade_exits, agents_info
 from func_messaging import send_message
 
 
@@ -14,6 +14,9 @@ if __name__ == "__main__":
     # Message on start
     send_message("Bot launch successful")
 
+    # Info about stored agents
+    agents_info()
+
     # Connect to client
     try:
         print("Connecting to Client...")
@@ -22,6 +25,11 @@ if __name__ == "__main__":
         print("Error connecting to client: ", e)
         send_message(f"Failed to connect to client {e}")
         exit(1)
+
+    # df_market_prices = construct_market_prices(client)
+    # markets = client.public.get_markets()
+    # print(markets)
+    # exit(1)
 
     # Abort all open positions
     if ABORT_ALL_POSITIONS:
@@ -56,6 +64,9 @@ if __name__ == "__main__":
             print("Error saving cointegrated pairs: ", e)
             send_message(f"Error saving cointegrated pairs {e}")
             exit(1)
+
+    if not MANAGE_EXITS and not PLACE_TRADES:
+        exit(1)
 
     # Run as always on
     while True:

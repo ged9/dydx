@@ -212,4 +212,7 @@ class BotAgent:
         # Return success result
         else:
             self.order_dict["pair_status"] = "LIVE"
+            print('>>>>>>>>>>>>>> Novy agent: <<<<<<<<<<<<<<<<<<')
+            print(self.order_dict)
+
             return self.order_dict

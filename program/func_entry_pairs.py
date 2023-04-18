@@ -27,6 +27,9 @@ def open_positions(client):
     # Initialize container for BotAgent results
     bot_agents = []
 
+    # je zmena v agentech?
+    bot_change = False
+
     # Opening JSON file
     try:
         open_positions_file = open("bot_agents.json")
@@ -35,6 +38,7 @@ def open_positions(client):
             bot_agents.append(p)
     except:
         bot_agents = []
+        bot_change = True  # ulozime, kdyz je novy
 
     # Find ZScore triggers
     for index, row in df.iterrows():
@@ -149,6 +153,7 @@ def open_positions(client):
                             # Append to list of bot agents
                             bot_agents.append(bot_open_dict)
                             del bot_open_dict
+                            bot_change = True
 
                             # Confirm live status in print
                             print("Trade status: Live")
@@ -156,6 +161,7 @@ def open_positions(client):
 
     # Save agents
     print(f"Success: Manage open trades checked")
-    if len(bot_agents) > 0:
+    # if len(bot_agents) > 0:  # nebudeme ukladat porad dokola, kdyz neni zmena
+    if bot_change:
         with open("bot_agents.json", "w") as f:
             json.dump(bot_agents, f)

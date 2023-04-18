@@ -31,6 +31,9 @@ def manage_trade_exits(client):
     if len(open_positions_dict) < 1:
         return "complete"
 
+    # je zmena?
+    bot_change = False
+
     # Get all open positions per trading platform
     exchange_pos = client.private.get_positions(status="OPEN")
     all_exc_pos = exchange_pos.data["positions"]
@@ -99,7 +102,7 @@ def manage_trade_exits(client):
         time.sleep(0.2)
 
         # Trigger close based on Z-Score
-        if CLOSE_AT_ZSCORE_CROSS:
+        if CLOSE_AT_ZSCORE_CROSS:  # prekroceni opacne hodnoty (1.5 -> -1.5)
 
             # Initialize z_scores
             hedge_ratio = position["hedge_ratio"]
@@ -108,15 +111,18 @@ def manage_trade_exits(client):
                 spread = series_1 - (hedge_ratio * series_2)
                 z_score_current = calculate_zscore(spread).values.tolist()[-1]
 
-            # Determine trigger
-            z_score_level_check = abs(z_score_current) >= abs(z_score_traded)  # ?????????????????????????? z pozitivniho na negativni a naopak????
-            z_score_cross_check = (z_score_current < 0 < z_score_traded) or (z_score_current > 0 > z_score_traded)
+                # tato cast si myslim, ze by to mela byt pod if
+                # Determine trigger
+                z_score_level_check = abs(z_score_current) >= abs(z_score_traded)
+                z_score_cross_check = (z_score_current < 0 < z_score_traded) or (z_score_current > 0 > z_score_traded)
 
-            # Close trade
-            if z_score_level_check and z_score_cross_check:
+                print(f"{position['order_id_m1']} proti {position['order_id_m2']}; Z-score:: traded: {z_score_traded}, ted: {z_score_current}")
 
-                # Initiate close trigger
-                is_close = True
+                # Close trade
+                if z_score_level_check and z_score_cross_check:
+
+                    # Initiate close trigger
+                    is_close = True
 
         ###
         # Add any other close logic you want here
@@ -188,6 +194,8 @@ def manage_trade_exits(client):
                 print(close_order_m2["order"]["id"])
                 print(">>> Closing <<<")
 
+                bot_change = True
+
             except Exception as e:
                 print(f"Exit failed for {position_market_m1} with {position_market_m2}")
                 save_output.append(position)
@@ -197,6 +205,20 @@ def manage_trade_exits(client):
             save_output.append(position)
 
     # Save remaining items
-    print(f"{len(save_output)} Items remaining. Saving file...")
-    with open("bot_agents.json", "w") as f:
-        json.dump(save_output, f)
+    print(f"{len(save_output)} Items remaining.{' Saving file...' if bot_change else ''}")
+    if bot_change:
+        with open("bot_agents.json", "w") as f:
+            json.dump(save_output, f)
+
+
+def agents_info():
+    try:
+        open_positions_file = open("bot_agents.json")
+        open_positions_dict = json.load(open_positions_file)
+
+        print(f'Bot Agenti: {len(open_positions_dict)}')
+        for position in open_positions_dict:
+            print(f"{position['market_1']} {position['order_m1_side']} proti {position['market_2']} {position['order_m2_side']}, Z: {position['z_score']}, half life: {position['half_life']}")
+        pprint(open_positions_dict)
+    except:
+        print("agents_info problem")
