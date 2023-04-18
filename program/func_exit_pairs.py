@@ -116,7 +116,7 @@ def manage_trade_exits(client):
                 z_score_level_check = abs(z_score_current) >= abs(z_score_traded)
                 z_score_cross_check = (z_score_current < 0 < z_score_traded) or (z_score_current > 0 > z_score_traded)
 
-                print(f"{position['order_id_m1']} proti {position['order_id_m2']}; Z-score:: traded: {z_score_traded}, ted: {z_score_current}")
+                print(f"{position['market_1']} proti {position['market_2']}; Z-score:: traded: {z_score_traded}, ted: {z_score_current}")
 
                 # Close trade
                 if z_score_level_check and z_score_cross_check:
